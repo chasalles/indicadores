@@ -12,52 +12,58 @@
 
 #include <Generic\ArrayList.mqh>
 #include <ChartObjects\ChartObjectsLines.mqh>
-#include <Generic\Interfaces\IComparable.mqh>
 
 
 CChartObjectHLine horizontalLine1;
 CChartObjectHLine horizontalLine2;
 CChartObjectHLine horizontalLine3;
 
-template<typename Preco>
-class Preco : public IComparable<Preco>{
-   private:
-      int  valor;
-      int  qnt;
 
-   public:
-      void Preco(int v, int q){
-         valor = v;
-         qnt = q;
-      }
+class Preco {
+    protected:
+        int  valor;
+        int  qnt;
 
-      int getValor(){
-         return valor;
-      }
+    public:
+        void Preco(int v, int q){
+            valor = v;
+            qnt = q;
+        }
+
+        int getValor(){
+            return valor;
+        }
     
-      int getQnt(){
-         return qnt;
-      }
+        int getQnt(){
+            return qnt;
+        }
       
-      void incQnt(){
-         qnt++;
-      }
-      
-      int Compare(Preco* aux){
-      Print("0011");
-         if(aux.getQnt() < qnt){
-            return(-1);
-         }
-         
-         if(aux.getQnt() > qnt){
-            return(1);
-         }
-         
-         return(0);
-      }
+        void incQnt(){
+            qnt++;
+        }
 };
 
-CArrayList<Preco*> lista = new CArrayList<Preco*>();
+template<typename T>
+class Comparador : public IComparer<T>{
+    public:
+        Comparador(void){}
+        ~Comparador(void){}
+        
+        int Compare(T x, T y){
+            if(x.getQnt() < y.getQnt()){
+                return -1;
+            }
+                 
+            if(x.getQnt() > y.getQnt()){
+                return 1;
+            }
+                 
+            return 0;
+        }
+};
+
+CArrayList<Preco*>* lista = new CArrayList<Preco*>();
+Comparador<Preco*> comparador;
 
 MqlRates historicoPrecos[];
 
@@ -91,8 +97,8 @@ int OnInit()
          }
       }
    }  
-   
-   Print("TTT: ", lista.Sort());
+    
+   lista.Sort(&comparador);
    
    Preco* aux;
    
@@ -135,7 +141,6 @@ int OnCalculate(const int rates_total,
                 const int &spread[])
   {
 //---
-   Print("ENTROUUUUY");
 
 
    
