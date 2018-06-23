@@ -50,11 +50,11 @@ class Comparador : public IComparer<T>{
         ~Comparador(void){}
         
         int Compare(T x, T y){
-            if(x.getQnt() < y.getQnt()){
+            if(x.getQnt() > y.getQnt()){
                 return -1;
             }
                  
-            if(x.getQnt() > y.getQnt()){
+            if(x.getQnt() < y.getQnt()){
                 return 1;
             }
                  
@@ -67,6 +67,8 @@ Comparador<Preco*> comparador;
 
 MqlRates historicoPrecos[];
 
+color cores[] = {0x0000ff, 0xe2, 0x0000c6, 0x0000a9, 0x00008d, 0x000071, 0x000054, 0x000038, 0x00001c, 0x000000};
+
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
@@ -76,9 +78,9 @@ int OnInit()
   
    ArraySetAsSeries(historicoPrecos, true);
    
-   CopyRates(_Symbol, _Period, 0, 110, historicoPrecos);
+   CopyRates(_Symbol, _Period, 0, 550, historicoPrecos);
 
-   for(int i = 0; i < 102; i++){
+   for(int i = 0; i < 510; i++){
       for(int j = (int)historicoPrecos[i].low; j <= historicoPrecos[i].high; j+=5){
          Preco* aux;
          int inseriu = 0;
@@ -107,22 +109,35 @@ int OnInit()
       Print("Array[", k, "]: ", aux.getValor(), "(", aux.getQnt(), ")");
    }
  
+ 
+   Preco* valor;
+   
+   for(int i = 0; i < 10; i++){
+      lista.TryGetValue(i, valor); 
+      
+      horizontalLine1.Create(0, "LINHA" + (string)i, 0, valor.getValor());
+      horizontalLine1.SetInteger(OBJPROP_COLOR, cores[i]);
+      horizontalLine1.SetInteger(OBJPROP_STYLE, STYLE_SOLID);
+      horizontalLine1.SetInteger(OBJPROP_WIDTH, 1); 
+   }
+
+/* 
 //--- indicator buffers mapping
-   horizontalLine1.Create(0, "LINHA 1", 0, 70110);
+   horizontalLine1.Create(0, "LINHA 1", 0, 72810);
    horizontalLine1.SetInteger(OBJPROP_COLOR, clrBlue);
    horizontalLine1.SetInteger(OBJPROP_STYLE, STYLE_SOLID);
    horizontalLine1.SetInteger(OBJPROP_WIDTH, 1);
    
-   horizontalLine2.Create(0, "LINHA 2", 0, 70210);
+   horizontalLine2.Create(0, "LINHA 2", 0, 72810);
    horizontalLine2.SetInteger(OBJPROP_COLOR, clrBlue);
    horizontalLine2.SetInteger(OBJPROP_STYLE, STYLE_SOLID);
    horizontalLine2.SetInteger(OBJPROP_WIDTH, 1);
    
-   horizontalLine3.Create(0, "LINHA 3", 0, 70310);
+   horizontalLine3.Create(0, "LINHA 3", 0, 72710);
    horizontalLine3.SetInteger(OBJPROP_COLOR, clrBlue);
    horizontalLine3.SetInteger(OBJPROP_STYLE, STYLE_SOLID);
    horizontalLine3.SetInteger(OBJPROP_WIDTH, 1);
-   
+   */
 //---
    return(INIT_SUCCEEDED);
   }
