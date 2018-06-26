@@ -14,7 +14,7 @@
 #include <ChartObjects\ChartObjectsLines.mqh>
 
 
-CChartObjectHLine horizontalLine1;
+CChartObjectHLine horizontalLine[100];
 CChartObjectHLine horizontalLine2;
 CChartObjectHLine horizontalLine3;
 
@@ -67,7 +67,9 @@ Comparador<Preco*> comparador;
 
 MqlRates historicoPrecos[];
 
-color cores[] = {0x0000ff, 0xe2, 0x0000c6, 0x0000a9, 0x00008d, 0x000071, 0x000054, 0x000038, 0x00001c, 0x000000};
+color cores[] = {C'255,0,0', C'245,0,0', C'235,0,0', C'225,0,0', C'215,0,0', C'205,0,0', C'195,0,0', C'185,0,0', C'175,0,0', C'165,0,0', C'155,0,0', C'145,0,0', C'135,0,0', C'125,0,0', C'115,0,0', C'105,0,0', C'95,0,0', C'85,0,0', C'75,0,0', C'65,0,0', C'55,0,0', C'45,0,0', C'35,0,0', C'25,0,0', C'15,0,0', C'5,0,0'};
+
+MqlDateTime mqlDataAtual;
 
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
@@ -78,7 +80,9 @@ int OnInit()
   
    ArraySetAsSeries(historicoPrecos, true);
    
-   CopyRates(_Symbol, _Period, 0, 550, historicoPrecos);
+   CopyRates(_Symbol, PERIOD_M1, 0, 550, historicoPrecos);
+
+    lista.Clear();
 
    for(int i = 0; i < 510; i++){
       for(int j = (int)historicoPrecos[i].low; j <= historicoPrecos[i].high; j+=5){
@@ -115,10 +119,10 @@ int OnInit()
    for(int i = 0; i < 10; i++){
       lista.TryGetValue(i, valor); 
       
-      horizontalLine1.Create(0, "LINHA" + (string)i, 0, valor.getValor());
-      horizontalLine1.SetInteger(OBJPROP_COLOR, cores[i]);
-      horizontalLine1.SetInteger(OBJPROP_STYLE, STYLE_SOLID);
-      horizontalLine1.SetInteger(OBJPROP_WIDTH, 1); 
+      horizontalLine[i].Create(0, "LINHA" + (string)i, 0, valor.getValor());
+      horizontalLine[i].SetInteger(OBJPROP_COLOR, cores[i]);
+      horizontalLine[i].SetInteger(OBJPROP_STYLE, STYLE_SOLID);
+      horizontalLine[i].SetInteger(OBJPROP_WIDTH, 1); 
    }
 
 /* 
@@ -139,6 +143,8 @@ int OnInit()
    horizontalLine3.SetInteger(OBJPROP_WIDTH, 1);
    */
 //---
+    EventSetTimer(60);
+    
    return(INIT_SUCCEEDED);
   }
 //+------------------------------------------------------------------+
@@ -156,18 +162,68 @@ int OnCalculate(const int rates_total,
                 const int &spread[])
   {
 //---
-
-
-   
+    
 //--- return value of prev_calculated for next call
    return(rates_total);
   }
 //+------------------------------------------------------------------+
 //| Timer function                                                   |
 //+------------------------------------------------------------------+
-void OnTimer()
-  {
+void OnTimer(){
 //---
+    Print(mqlDataAtual.hour, ":", mqlDataAtual.min, ":", mqlDataAtual.sec);
+    
+    for(int i = 0; i < 10; i++){
+        horizontalLine[i].Delete();
+    }
+
+    TimeToStruct(TimeCurrent(), mqlDataAtual);
+    
+    Print(mqlDataAtual.hour, ":", mqlDataAtual.min, ":", mqlDataAtual.sec);
+        
+    CopyRates(_Symbol, PERIOD_M1, 0, 550, historicoPrecos);
+
+    lista.Clear();
+
+    for(int i = 0; i < 240; i++){
+        for(int j = (int)historicoPrecos[i].low; j <= historicoPrecos[i].high; j+=5){
+            Preco* aux;
+            int inseriu = 0;
+         
+            for(int k = 0; k < lista.Count(); k++){
+                lista.TryGetValue(k, aux);
+            
+                if(aux.getValor() == j){
+                    aux.incQnt();
+                    inseriu = 1;
+                }    
+            }
+         
+            if(inseriu == 0){
+                lista.Add(new Preco(j, 1));
+            }
+        }
+    }  
+    
+   lista.Sort(&comparador);
    
-  }
+   Preco* aux;
+   
+   for(int k = 0; k < 20; k++){
+      lista.TryGetValue(k, aux);
+      Print("Array[", k, "]: ", aux.getValor(), "(", aux.getQnt(), ")");
+   }
+ 
+ 
+   Preco* valor;
+   
+   for(int i = 0; i < 20; i++){
+      lista.TryGetValue(i, valor); 
+      
+      horizontalLine[i].Create(0, "LINHA" + (string)i, 0, valor.getValor());
+      horizontalLine[i].SetInteger(OBJPROP_COLOR, cores[i]);
+      horizontalLine[i].SetInteger(OBJPROP_STYLE, STYLE_SOLID);
+      horizontalLine[i].SetInteger(OBJPROP_WIDTH, 1); 
+   }
+}
 //+------------------------------------------------------------------+
